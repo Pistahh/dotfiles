@@ -1,0 +1,38 @@
+[user]
+	email = szekeres@iii.hu
+	name = Istvan Szekeres
+
+[alias]
+        lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative
+[push]
+	default = simple
+
+[url "http://github.com/"]
+	insteadOf = "gh:"
+
+[url "git@github.com:"]
+	pushInsteadOf = "https://github.com/"
+	pushInsteadOf = "http://github.com/"
+	pushInsteadOf = "gh:"
+
+[credential]
+	helper = "cache --timeout 86400"
+
+[pack]
+	threads = 2
+
+[include]
+	path = .gitconfig.local
+
+[pull]
+	rebase = true
+
+[lfs]
+	fetchexclude = *
+
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+

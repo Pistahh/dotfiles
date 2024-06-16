@@ -63,7 +63,7 @@ bindkey "^[[1;5C" forward-word
 bindkey "^[OD" backward-word
 bindkey "^[OC" forward-word
 bindkey '^F' accept-and-menu-complete
-bindkey "^Q" push-line-or-editutoload compinit
+bindkey "^Q" push-line-or-edit
 
 
 # completion

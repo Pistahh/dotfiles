@@ -1,4 +1,18 @@
+sudo apt -y install zsh fzf ripgrep fd-find
+
+# neovim
+[[ -x /snap/bin/nvim ]] || sudo snap install --classic nvim
+
 # zplug
-sudo apt install zsh fzf ripgrep fd-find
-sudo snap install nvim --classic
-curl -sL --proto-redir -all,https https://raw.githubusercontent.com/zplug/installer/master/installer.zsh | zsh
+[[ -d ~/.zplug ]] || curl -sL --proto-redir -all,https https://raw.githubusercontent.com/zplug/installer/master/installer.zsh | zsh
+
+# astronvim
+
+D=$(date +%Y%m%d-%H%M%S)
+[[ -d ~/.config/nvim ]] && mv ~/.config/nvim ~/.config/nvim-$D.bak
+[[ -d ~/.local/share/nvim ]] && mv ~/.local/share/nvim ~/.local/share/nvim-$D.bak
+[[ -d ~/.local/state/nvim ]] && mv ~/.local/state/nvim ~/.local/state/nvim-$D.bak
+[[ -d ~/.cache/nvim ]] && mv ~/.cache/nvim ~/.cache/nvim-$D.bak
+
+git clone --depth 1 https://github.com/AstroNvim/template ~/.config/nvim
+rm -rf ~/.config/nvim/.git

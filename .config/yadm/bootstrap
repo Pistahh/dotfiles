@@ -1,0 +1,4 @@
+# zplug
+sudo apt install zsh fzf ripgrep fd-find
+sudo snap install nvim --classic
+curl -sL --proto-redir -all,https https://raw.githubusercontent.com/zplug/installer/master/installer.zsh | zsh

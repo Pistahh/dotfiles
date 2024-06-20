@@ -1,6 +1,8 @@
-ZSHDIR=${ZDOTDIR:-~${SUDO_USER}}/.zsh.d
 
 umask 002
+
+# disable terminal ^q/^s
+stty stop undef
 
 eval $(dircolors)
 export SYSTEMD_PAGER=
@@ -53,6 +55,23 @@ have_command () {
   command -v "$1" >/dev/null 2>&1 && return 0
   return 1
 }
+
+# plugins
+if [[ -f ~/.zplug/init.zsh ]]; then
+    source ~/.zplug/init.zsh
+    zplug "oconnor663/zsh-sensible"
+    zplug "zsh-users/zsh-completions"
+    zplug "agkozak/zsh-z"
+    zplug "plugins/ssh-agent", from:oh-my-zsh, ignore:oh-my-zsh.sh
+    zplug "zsh-users/zsh-syntax-highlighting", defer:2
+    if ! zplug check --verbose; then
+        echo -n "Install zplug plugins? [y/n]: "
+        if read -q; then
+          echo; zplug install
+        fi
+    fi
+    zplug load
+fi
 
 # key bindings
 bindkey -e
@@ -131,6 +150,7 @@ setopt noclobber
 setopt extendedglob
 setopt globdots
 setopt autopushd
+setopt incappendhistory
 
 # fzf
 for dir in /usr/share/fzf /usr/share/fzf/shell /usr/share/doc/fzf/examples; do
@@ -139,28 +159,15 @@ for dir in /usr/share/fzf /usr/share/fzf/shell /usr/share/doc/fzf/examples; do
 done
 
 
-# plugins
-
-if [[ -f ~/.zplug/init.zsh ]]; then
-    source ~/.zplug/init.zsh
-    zplug "oconnor663/zsh-sensible"
-    zplug "zsh-users/zsh-completions"
-    zplug "agkozak/zsh-z"
-    zplug "plugins/ssh-agent", from:oh-my-zsh, ignore:oh-my-zsh.sh
-    zplug "zsh-users/zsh-syntax-highlighting", defer:2
-    if ! zplug check --verbose; then
-        echo -n "Install zplug plugins? [y/n]: "
-        if read -q; then
-          echo; zplug install
-        fi
-    fi
-    zplug load
-fi
-
 # history
-
 export HISTORY_IGNORE="(ls|bg|fg|pwd|exit|cd ..|cd -|pushd|popd)"
+export HISTSIZE=999999
+mkdir -p ~/.local/state/zsh
+export HISTFILE=~/.local/state/zsh/history-$(date +%Y%m%d%H%M%S)-$$
 
+have_command atuin && eval "$(atuin init --disable-up-arrow zsh)"
+
+# prompt
 setopt promptsubst
 PR_RED='%{%F{red}%B%}'
 PR_GREEN='%{%F{green}%B%}'
@@ -171,7 +178,6 @@ PRB_BLUE='%K{blue}%B'
 PRB_GREEN='%K{green}%B'
 PRB_RED='%K{red}%B'
 PRB_YELLOW='%K{yellow}%B'
-
 
 precmd () {
     if [ -n "$WINDOW" ]; then

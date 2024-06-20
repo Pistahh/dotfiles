@@ -1,18 +1,108 @@
-sudo apt -y install zsh fzf ripgrep fd-find
+#!/bin/sh
 
-# neovim
-[[ -x /snap/bin/nvim ]] || sudo snap install --classic nvim
+ID=unknown
+ID_LIKE=unknown
+[ -f /etc/os-release ] && . /etc/os-release
+
+has () {
+  command -v "$1" > /dev/null 2>&1
+  return $?
+}
+
+want () {
+  echo -n "Install $*? [Y/n] "
+  read answer
+
+  case ${answer}y in
+    y*|Y*) return 0
+  esac
+  return 1
+}
+
+install_gh () {
+  ! has gh && want Github CLI client && (
+    case $ID_LIKE in
+      debian)
+        sudo mkdir -p -m 755 /etc/apt/keyrings
+        wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg | \
+          sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null
+        sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | \
+          sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+        sudo apt update
+        sudo apt install gh -y
+        ;;
+    esac
+  )
+}
+
+install_atuin () {
+  ! has atuin && want atuin && (
+    case $ID in
+      arch)
+        sudo pacman -S --noconfirm atuin
+        ;;
+      debian|ubuntu)
+        bash <(curl https://raw.githubusercontent.com/atuinsh/atuin/main/install.sh)
+        ;;
+    esac
+  )
+}
+
+install_peco () {
+  ! has peco && want peco && (
+    wget -qO - https://github.com/peco/peco/releases/download/v0.5.11/peco_linux_amd64.tar.gz | \
+      sudo tar xzf - -C /tmp --strip-components=1 peco_linux_amd64/peco
+    sudo install -o root -g root -m 0755 /tmp/peco /usr/local/bin
+  )
+}
+
+install_wezterm () {
+  ! has wezterm && want wezterm && (
+    case $ID in
+      arch)
+        sudo pacman -S --noconfirm wezterm
+        ;;
+      debian|ubuntu)
+        curl -fsSL https://apt.fury.io/wez/gpg.key | \
+          sudo gpg --yes --dearmor -o /usr/share/keyrings/wezterm-fury.gpg
+        echo 'deb [signed-by=/usr/share/keyrings/wezterm-fury.gpg] https://apt.fury.io/wez/ * *' | \
+          sudo tee /etc/apt/sources.list.d/wezterm.list > /dev/null
+        sudo apt update
+        sudo apt install wezterm
+        ;;
+    esac
+  )
+}
 
 # zplug
-[[ -d ~/.zplug ]] || curl -sL --proto-redir -all,https https://raw.githubusercontent.com/zplug/installer/master/installer.zsh | zsh
+install_zplug () {
+  [[ -f ~/.zplug/init.zsh ]] || {
+    curl -sL --proto-redir -all,https https://raw.githubusercontent.com/zplug/installer/master/installer.zsh | zsh
+  }
+}
 
-# astronvim
+install_astronvim () {
+   [[ -d ~/.config/nvim ]] || {
+      rm -rf ~/.local/share/nvim ~/.local/state/nvim ~/.cache/nvim
+      git clone --depth 1 https://github.com/AstroNvim/template ~/.config/nvim
+      rm -rf ~/.config/nvim/.git
+   }
+}
 
-D=$(date +%Y%m%d-%H%M%S)
-[[ -d ~/.config/nvim ]] && mv ~/.config/nvim ~/.config/nvim-$D.bak
-[[ -d ~/.local/share/nvim ]] && mv ~/.local/share/nvim ~/.local/share/nvim-$D.bak
-[[ -d ~/.local/state/nvim ]] && mv ~/.local/state/nvim ~/.local/state/nvim-$D.bak
-[[ -d ~/.cache/nvim ]] && mv ~/.cache/nvim ~/.cache/nvim-$D.bak
+case $ID in
+  debian|ubuntu)
+    sudo apt install -y zsh wget fzf ripgrep fd-find
+    sudo snap install nvim --classic
+    ;;
+  arch)
+    pacman -S --noconfirm zsh wget fzf ripgrep fd neovim
+    ;;
+esac
 
-git clone --depth 1 https://github.com/AstroNvim/template ~/.config/nvim
-rm -rf ~/.config/nvim/.git
+install_atuin
+install_gh
+install_peco
+install_wezterm
+install_zplug
+install_astronvim

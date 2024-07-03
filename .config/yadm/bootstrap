@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 ID=unknown
 ID_LIKE=unknown
@@ -17,6 +17,20 @@ want () {
     y*|Y*) return 0
   esac
   return 1
+}
+
+install_vscode () {
+  has code && return
+  want VS Code || return
+  case $ID_LIKE in
+    debian)
+      sudo mkdir -p -m 755 /etc/apt/keyrings
+      wget -qO- https://packages.microsoft.com/keys/microsoft.asc | \
+        gpg --dearmor | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null
+      sudo apt update
+      sudo apt install code
+      ;;
+  esac
 }
 
 install_gh () {
@@ -58,21 +72,21 @@ install_peco () {
 }
 
 install_wezterm () {
-  ! has wezterm && want wezterm && (
-    case $ID in
-      arch)
-        sudo pacman -S --noconfirm wezterm
-        ;;
-      debian|ubuntu)
-        curl -fsSL https://apt.fury.io/wez/gpg.key | \
-          sudo gpg --yes --dearmor -o /usr/share/keyrings/wezterm-fury.gpg
-        echo 'deb [signed-by=/usr/share/keyrings/wezterm-fury.gpg] https://apt.fury.io/wez/ * *' | \
-          sudo tee /etc/apt/sources.list.d/wezterm.list > /dev/null
-        sudo apt update
-        sudo apt install wezterm
-        ;;
-    esac
-  )
+  has wezterm && return
+  want wezterm || return
+  case $ID in
+    arch)
+      sudo pacman -S --noconfirm wezterm
+      ;;
+    debian|ubuntu)
+      curl -fsSL https://apt.fury.io/wez/gpg.key | \
+        sudo gpg --yes --dearmor -o /usr/share/keyrings/wezterm-fury.gpg
+      echo 'deb [signed-by=/usr/share/keyrings/wezterm-fury.gpg] https://apt.fury.io/wez/ * *' | \
+        sudo tee /etc/apt/sources.list.d/wezterm.list > /dev/null
+      sudo apt update
+      sudo apt install wezterm
+      ;;
+  esac
 }
 
 # zplug
@@ -90,6 +104,62 @@ install_astronvim () {
    }
 }
 
+install_literation () {
+  D=~/.fonts/truetype/literation
+  Z=/tmp/literation.zip
+  [[ -d $D ]] && return
+  want Literation font || return
+  wget -O $Z https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/LiberationMono.zip
+  mkdir -p $D
+  pushd $D
+  unzip $Z
+  rm $Z
+  popd
+}
+
+install_docker () {
+  has /usr/bin/docker && return
+  want docker || return
+
+  case $ID in
+    arch)
+      sudo pacman -S --noconfirm docker docker-buildx docker-compose
+      echo TODO add user to docker group
+      ;;
+    debian|ubuntu)
+      curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo tee /etc/apt/keyrings/docker.asc > /dev/null
+      echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+         $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+      sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+      sudo apt-get update
+      sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+      sudo adduser $USER docker
+      ;;
+  esac
+
+}
+
+install_nvidia_docker_toolkit () {
+  has nvidia-ctk && return
+  want NVidia Docker Toolkit !! return
+
+  case $ID in
+    arch)
+      echo TODO
+      ;;
+    debian|ubuntu)
+      curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | \
+        sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+      curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
+        sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+        sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+      sudo apt-get update
+      sudo apt-get install -y nvidia-container-toolkit
+      ;;
+  esac
+}
+
+
 case $ID in
   debian|ubuntu)
     sudo apt install -y zsh wget fzf ripgrep fd-find
@@ -100,9 +170,13 @@ case $ID in
     ;;
 esac
 
-install_atuin
-install_gh
-install_peco
-install_wezterm
 install_zplug
 install_astronvim
+install_atuin
+install_vscode
+install_gh
+install_peco
+install_literation
+install_wezterm
+install_docker
+install_nvidia_docker_toolkit

@@ -3,7 +3,9 @@
 	name = Istvan Szekeres
 
 [alias]
-        lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative
+  lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative
+  files = diff-tree --no-commit-id --name-only -r HEAD
+
 [push]
 	default = simple
 
@@ -27,12 +29,11 @@
 [pull]
 	rebase = true
 
-[lfs]
-	fetchexclude = *
+[merge]
+#	conflictStyle = zdiff3
 
 [filter "lfs"]
 	clean = git-lfs clean -- %f
 	smudge = git-lfs smudge -- %f
 	process = git-lfs filter-process
 	required = true
-

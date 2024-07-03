@@ -227,3 +227,4 @@ $PR_RESET%B %# $PR_RESET'
 
 export PS2="${PR_RED}[$PR_GREEN%_${PR_RED}]$PR_RESET> "
 
+[[ -f ~/.zshrc.local ]] && source ~/.zshrc.local

@@ -57,7 +57,7 @@ install_atuin () {
         sudo pacman -S --noconfirm atuin
         ;;
       debian|ubuntu)
-        bash <(curl https://raw.githubusercontent.com/atuinsh/atuin/main/install.sh)
+        curl --proto '=https' --tlsv1.2 -LsSf https://github.com/atuinsh/atuin/releases/latest/download/atuin-installer.sh | sh
         ;;
     esac
   )
@@ -97,11 +97,11 @@ install_zplug () {
 }
 
 install_astronvim () {
-   [[ -d ~/.config/nvim ]] || {
-      rm -rf ~/.local/share/nvim ~/.local/state/nvim ~/.cache/nvim
-      git clone --depth 1 https://github.com/AstroNvim/template ~/.config/nvim
-      rm -rf ~/.config/nvim/.git
-   }
+   [[ -f ~/.config/nvim/lua/plugins/astrocore.lua ]] && return
+   rm -rf ~/.config/nvim ~/.local/share/nvim ~/.local/state/nvim ~/.cache/nvim
+   git clone --depth 1 https://github.com/AstroNvim/template ~/.config/nvim
+   rm -rf ~/.config/nvim/.git
+   yadm checkout ~/.config/nvim/lua/community.lua
 }
 
 install_literation () {
@@ -141,7 +141,7 @@ install_docker () {
 
 install_nvidia_docker_toolkit () {
   has nvidia-ctk && return
-  want NVidia Docker Toolkit !! return
+  want NVidia Docker Toolkit || return
 
   case $ID in
     arch)
@@ -159,10 +159,15 @@ install_nvidia_docker_toolkit () {
   esac
 }
 
+change_shell () {
+	grep "$USER.*zsh" /etc/passwd >/dev/null && return
+	echo Changing shell to zsh
+	chsh --shell /usr/bin/zsh $USER
+}
 
 case $ID in
   debian|ubuntu)
-    sudo apt install -y zsh wget fzf ripgrep fd-find
+    sudo apt install -y zsh wget fzf ripgrep fd-find curl build-essential python3-venv
     sudo snap install nvim --classic
     ;;
   arch)
@@ -170,6 +175,7 @@ case $ID in
     ;;
 esac
 
+change_shell
 install_zplug
 install_astronvim
 install_atuin

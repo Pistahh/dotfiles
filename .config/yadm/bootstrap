@@ -119,7 +119,7 @@ install_literation () {
 
 install_docker () {
   has /usr/bin/docker && return
-  want docker || return
+  want Docker || return
 
   case $ID in
     arch)
@@ -175,6 +175,23 @@ case $ID in
     ;;
 esac
 
+install_zig () {
+  has zig && return
+  want Zig compiler || return
+
+  case $ID in
+    debian|ubuntu)
+      sudo mkdir /opt/zig
+      wget -qO- https://ziglang.org/download/0.13.0/zig-linux-x86_64-0.13.0.tar.xz | \
+      sudo tar xJf - -C /opt/zig --strip-components=1
+      sudo ln -s /opt/zig/zig /usr/local/bin/
+      ;;
+    arch)
+      pacman -S zig-bin
+      ;;
+  esac
+}
+
 change_shell
 install_zplug
 install_astronvim
@@ -186,3 +203,4 @@ install_literation
 install_wezterm
 install_docker
 install_nvidia_docker_toolkit
+install_zig

@@ -158,6 +158,21 @@ for dir in /usr/share/fzf /usr/share/fzf/shell /usr/share/doc/fzf/examples; do
     [[ -f $dir/key-bindings.zsh ]] && source $dir/key-bindings.zsh
 done
 
+# pyenv
+if [[ -d $HOME/.pyenv ]]; then
+    export PYENV_ROOT="$HOME/.pyenv"
+    export PATH="$PYENV_ROOT/bin:$PATH"
+    eval "$(pyenv init -)"
+    eval "$(pyenv virtualenv-init -)"
+fi
+
+# nvm
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+# direnv
+have_command direnv && eval "$(direnv hook zsh)"
 
 # history
 export HISTORY_IGNORE="(ls|bg|fg|pwd|exit|cd ..|cd -|pushd|popd)"
@@ -228,3 +243,4 @@ $PR_RESET%B %# $PR_RESET'
 export PS2="${PR_RED}[$PR_GREEN%_${PR_RED}]$PR_RESET> "
 
 [[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
+

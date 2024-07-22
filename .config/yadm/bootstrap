@@ -159,21 +159,22 @@ install_nvidia_docker_toolkit () {
   esac
 }
 
-change_shell () {
-	grep "$USER.*zsh" /etc/passwd >/dev/null && return
-	echo Changing shell to zsh
-	chsh --shell /usr/bin/zsh $USER
+install_pyenv () {
+  [[ -d ~/.pyenv ]] && return
+  want pyenv || return
+  sudo apt install -y libbz2-dev libncurses-dev libffi-dev libreadline-dev libsqlite3-dev liblzma-dev
+  curl https://pyenv.run | bash
 }
 
-case $ID in
-  debian|ubuntu)
-    sudo apt install -y zsh wget fzf ripgrep fd-find curl build-essential python3-venv
-    sudo snap install nvim --classic
-    ;;
-  arch)
-    pacman -S --noconfirm zsh wget fzf ripgrep fd neovim
-    ;;
-esac
+install_direnv () {
+   has direnv && return
+   want direnv || return
+
+   wget -O /tmp/direnv https://github.com/direnv/direnv/releases/download/v2.34.0/direnv.linux-amd64
+
+   sudo install -o root -g root -m 0755 /tmp/direnv /usr/local/bin
+   rm /tmp/direnv
+}
 
 install_zig () {
   has zig && return
@@ -192,6 +193,22 @@ install_zig () {
   esac
 }
 
+change_shell () {
+	grep "$USER.*zsh" /etc/passwd >/dev/null && return
+	echo Changing shell to zsh
+	chsh --shell /usr/bin/zsh $USER
+}
+
+case $ID in
+  debian|ubuntu)
+    sudo apt install -y zsh wget fzf ripgrep fd-find curl build-essential python3-venv
+    sudo snap install nvim --classic
+    ;;
+  arch)
+    pacman -S --noconfirm zsh wget fzf ripgrep fd neovim
+    ;;
+esac
+
 change_shell
 install_zplug
 install_astronvim
@@ -203,4 +220,6 @@ install_literation
 install_wezterm
 install_docker
 install_nvidia_docker_toolkit
+install_pyenv
+install_direnv
 install_zig
